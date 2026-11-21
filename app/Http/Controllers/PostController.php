@@ -4,30 +4,75 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\Tag;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr as SupportArr;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class PostController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $posts = Post::with(['user', 'tags'])->latest()->get();
+        // Step 1: Validate search parameters
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'tag_id' => ['nullable', 'integer', 'exists:tags,id'],
+        ]);
 
-        return view('posts.index', compact('posts'));
+        // Step 2: Start the published posts query
+        $query = Post::query()
+            ->with(['user', 'tags'])
+            ->where('published', true);
+
+        // Step 3: Search by title or body
+        if (! empty($filters['search'])) {
+
+            $search = trim($filters['search']);
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('body', 'like', "%{$search}%");
+
+            });
+        }
+
+        // Step 4: Filter by selected tag
+        if (! empty($filters['tag_id'])) {
+
+            $query->whereHas('tags', function ($q) use ($filters) {
+
+                $q->where('tags.id', $filters['tag_id']);
+
+            });
+        }
+
+        // Step 5: Get matching posts with pagination
+        $posts = $query
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        // Step 6: Get available tags for dropdown
+        $tags = Tag::orderBy('name')->get();
+
+        // Step 7: Return view
+        return view('posts.index', compact('posts', 'tags'));
     }
+    
 
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
+        Gate::authorize('create', Post::class);
+
         return view('posts.create', [
             'post' => new Post,
-            'users' => User::all(),
             'tags' => Tag::all(),
         ]);
     }
@@ -37,21 +82,28 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('create', Post::class);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'body' => 'required|string',
-            'user_id' => 'required|exists:users,id',
-            'tags' => 'array',
+            'tags' => 'sometimes|array',
             'tags.*' => 'exists:tags,id',
         ]);
 
-        $data = SupportArr::except($validated, ['tags']);
-        $data['published'] = $request->boolean('published');
+        $post = DB::transaction(function () use ($request, $validated) {
+            $data = Arr::except($validated, ['tags']);
+            $data['published'] = $request->boolean('published');
 
-        $post = Post::create($data);
-        $post->tags()->sync($request->input('tags', []));
+            $post = $request->user()->posts()->create($data);
 
-        return redirect()->route('posts.show', $post)->with('success', 'Post created successfully');
+            $post->tags()->sync($validated['tags'] ?? []);
+
+            return $post;
+        });
+
+        return redirect()->route('posts.show', $post)
+            ->with('success', 'Post created successfully');
 
     }
 
@@ -60,9 +112,22 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
+        if (! $post->published) {
+            abort_unless(
+                auth()->check() &&
+                auth()->id() === $post->user_id,
+                404
+            );
+        }
+
         $post->load(['user', 'tags']);
 
-        return view('posts.show', compact('post'));
+        $comments = $post->comments()
+            ->with('user:id,name')
+            ->latest()
+            ->paginate(10);
+
+        return view('posts.show', compact('post', 'comments'));
     }
 
     /**
@@ -70,9 +135,10 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
+        Gate::authorize('update', $post);
+
         return view('posts.edit', [
             'post' => $post,
-            'users' => User::all(),
             'tags' => Tag::all(),
         ]);
     }
@@ -82,21 +148,23 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
+        Gate::authorize('update', $post);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'body' => 'required|string',
-            'user_id' => 'required|exists:users,id',
-            'tags' => 'array',
+            'tags' => 'sometimes|array',
             'tags.*' => 'exists:tags,id',
         ]);
 
-        $data = SupportArr::except($validated, ['tags']);
-        $data['published'] = $request->boolean('published');
+        DB::transaction(function () use ($request, $post, $validated) {
+            $data = Arr::except($validated, ['tags']);
+            $data['published'] = $request->boolean('published');
+            $post->update($data);
+            $post->tags()->sync($validated['tags'] ?? []);
+        });
 
-        $post->update($data);
-        $post->tags()->sync($request->input('tags', []));
-
-        return redirect()->route('posts.show', $post)->with('success', 'Post updated successfulyy');
+        return redirect()->route('posts.show', $post)->with('success', 'Post updated successfully');
     }
 
     /**
@@ -104,7 +172,10 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
+        Gate::authorize('delete', $post);
+
         $post->delete();
+
         return redirect()->route('posts.index')->with('success', 'Post deleted successfully');
     }
 }

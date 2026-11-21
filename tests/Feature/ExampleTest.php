@@ -1,7 +1,17 @@
 <?php
 
-test('the application returns a successful response', function () {
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+test('homepage displays the PostHub landing page', function () {
+
     $response = $this->get('/');
 
-    $response->assertStatus(200);
+    $response->assertOk();
+
+    $response->assertViewIs('home');
+
+    $response->assertSeeText('Discover ideas.');
+
 });

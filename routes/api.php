@@ -21,7 +21,7 @@ Route::middleware('auth:sanctum')->group(function() {
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::apiResource('posts', PostController::class);
+    Route::apiResource('posts', PostController::class)->names('api.posts');
 
     Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
     Route::get('/posts/{post}/comments', [CommentController::class, 'index']);
