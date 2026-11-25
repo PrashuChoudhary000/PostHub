@@ -13,7 +13,21 @@ It also provides a REST API secured with Laravel Sanctum and uses Laravel Polici
 
 **Source Code:** https://github.com/PrashuChoudhary000/laravel-posts-rest-api
 
-> Note: The application is hosted on a limited Railway trial. Availability may depend on the remaining hosting allowance.
+
+## Application Screenshots
+
+### Homepage
+![PostHub Homepage](docs/screenshots/homepage.png)
+
+### Explore Posts
+![Explore Posts](docs/screenshots/explore-posts.png)
+
+### My Posts Dashboard
+![My Posts Dashboard](docs/screenshots/my-posts.png)
+
+### Article Details and Comments
+![Article Details](docs/screenshots/article-details.png)
+
 
 ## Technology Stack
 
