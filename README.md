@@ -1,205 +1,119 @@
 
-# Laravel Posts REST API
+# PostHub — Full-Stack Laravel Blogging Platform
 
-A Laravel REST API practice project for managing posts, tags, and comments.
+PostHub is a full-stack blogging and community platform built using Laravel 13, PHP 8.4, Blade, Tailwind CSS, and MySQL.
 
-The application demonstrates API authentication, authorization, input validation, Eloquent relationships, pagination, database transactions, and automated feature testing.
+The application enables users to publish articles, manage drafts, explore community content, and participate in discussions.
 
-## Technologies
+It also provides a REST API secured with Laravel Sanctum and uses Laravel Policies for authorization.
 
+## Live Demo
+
+**Website:** https://vibrant-hope-production-8f9791d8.up.railway.app/
+
+**Source Code:** https://github.com/PrashuChoudhary000/laravel-posts-rest-api
+
+> Note: The application is hosted on a limited Railway trial. Availability may depend on the remaining hosting allowance.
+
+## Technology Stack
+
+### Backend
 - PHP 8.4
 - Laravel 13
+- Laravel Fortify
 - Laravel Sanctum
-- MySQL (Development)
-- SQLite (Testing)
-- PHPUnit
-- Laravel Eloquent ORM
+- Eloquent ORM
+- MySQL
+
+### Frontend
+- Laravel Blade
+- Tailwind CSS 4
+- Vite
+- Responsive layouts
+
+### Testing
+- Pest / PHPUnit
+- SQLite in-memory testing database
+- Laravel Feature Tests
+
+### Deployment
+- Railway
+- GitHub
+- Railway MySQL
+- HTTPS
 
 ## Features
 
-- User registration and login
-- Token-based authentication using Laravel Sanctum
-- User logout and token revocation
-- Create, retrieve, update, and delete posts
-- Post ownership authorization using policies
-- Attach tags to posts
-- Filter posts
-- Add comments to posts
-- Retrieve comments with author information
-- Comment pagination
-- Eager loading to reduce N+1 queries
-- Database transactions for related writes
-- Automated API feature tests
+### Authentication
+- User registration
+- Login and logout
+- Session-based web authentication using Fortify
+- Token-based API authentication using Sanctum
+- Password validation and hashing
 
-## Installation
+### Post Management
+- Create, read, update and delete posts
+- Publish articles or save them as drafts
+- Manage articles through My Posts
+- Published and Draft filters
+- Post ownership authorization
 
-### 1. Install dependencies
+### Community
+- Explore published articles
+- Search articles by title and content
+- Filter articles by tags
+- Comment on published articles
+- View comment authors
+- Pagination
 
-```bash
-composer install
-```
+### Security
+- Laravel Policy authorization
+- CSRF protection for web forms
+- Server-side validation
+- Draft visibility restrictions
+- Authenticated user ownership
+- Database transactions
+- Protection against unauthorized updates and deletion
 
-### 2. Configure environment
+## Application Pages
 
-Copy `.env.example` to `.env`.
+| Page | Description |
+|---|---|
+| Home | Landing page and community statistics |
+| Explore Posts | Browse and search published articles |
+| Register | Create an account |
+| Login | Authenticate an existing user |
+| My Posts | Manage published articles and drafts |
+| Create Post | Write a new article |
+| Edit Post | Update an existing article |
+| Post Details | Read an article and participate in discussions |
 
-For Windows PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Generate the application key:
-
-```bash
-php artisan key:generate
-```
-
-### 3. Configure MySQL
-
-Update the following values in `.env`:
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=your_database_name
-DB_USERNAME=your_database_username
-DB_PASSWORD=your_database_password
-```
-
-Create the database before running migrations.
-
-### 4. Run migrations
-
-```bash
-php artisan migrate
-```
-
-### 5. Run the application
-
-The project can be accessed through Laravel Herd.
-
-Alternatively:
-
-```bash
-php artisan serve
-```
-
-## Authentication
-
-This API uses Laravel Sanctum personal access tokens.
-
-First register or log in using the appropriate endpoint.
-
-For protected endpoints, include:
-
-```http
-Authorization: Bearer YOUR_TOKEN
-Accept: application/json
-```
-
-Logout revokes the current personal access token.
-
-## API Endpoints
+## REST API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
 | POST | /api/register | Register user |
-| POST | /api/login | Login |
+| POST | /api/login | Authenticate user |
 | POST | /api/logout | Logout |
-| GET | /api/me | Authenticated user details |
+| GET | /api/me | Authenticated user |
 | GET | /api/posts | List posts |
 | POST | /api/posts | Create post |
-| GET | /api/posts/{post} | Retrieve post |
+| GET | /api/posts/{post} | View post |
 | PUT/PATCH | /api/posts/{post} | Update post |
 | DELETE | /api/posts/{post} | Delete post |
-| POST | /api/posts/{post}/comments | Create comment |
+| POST | /api/posts/{post}/comments | Add comment |
 | GET | /api/posts/{post}/comments | List comments |
 
-The Laravel application also includes `/api/user`.
+API endpoints for managing posts and comments use Sanctum authentication and Laravel Policies.
 
+## API Authentication
 
-## Post Filtering and Pagination
+After obtaining a token through the login endpoint, send authenticated API requests using:
 
-The Posts API supports filtering using query parameters.
+    Authorization: Bearer YOUR_TOKEN
+    Accept: application/json
 
-### Available Filters
-
-| Parameter | Description | Example |
-|---|---|---|
-| published | Filter by publication status | ?published=1 |
-| user_id | Filter posts by author | ?user_id=2 |
-| tag_id | Filter posts by tag | ?tag_id=3 |
-| page | Select pagination page | ?page=2 |
-
-### Examples
-
-Retrieve published posts:
-
-```http
-GET /api/posts?published=1
-```
-
-Retrieve posts belonging to a specific author:
-
-```http
-GET /api/posts?user_id=2
-```
-
-Retrieve posts containing a specific tag:
-
-```http
-GET /api/posts?tag_id=3
-```
-
-Combine multiple filters:
-
-```http
-GET /api/posts?published=1&tag_id=3&page=2
-```
-
-### Pagination
-
-The API returns up to 10 posts per page.
-
-Pagination responses include data, navigation links, and metadata.
-
-The `withQueryString()` method preserves active filters when generating pagination links.
-
-### Query Optimization
-
-The Posts API uses Eloquent eager loading to retrieve author information efficiently:
-
-```php
-->with('user:id,name')
-```
-
-It also retrieves comment counts without loading every comment:
-
-```php
-->withCount('comments')
-```
-
-
-### Database Transactions
-
-Post creation and tag synchronization are performed inside database transactions.
-
-This prevents partial database updates if an operation fails.
-
-
-## Authorization
-
-The API uses Laravel Policies to protect post operations.
-
-Authenticated users can create posts.
-
-Only a post's author can update or delete it.
-
-Unauthorized modifications return HTTP 403.
-
-Unauthenticated access to protected endpoints returns HTTP 401.
+Browser authentication uses Fortify and session cookies.
 
 ## Eloquent Relationships
 
@@ -207,46 +121,137 @@ The application demonstrates:
 
 - User has many Posts
 - Post belongs to User
+- Post belongs to many Tags
 - Post has many Comments
 - Comment belongs to User
-- Post belongs to many Tags
 
-Eager loading is used to avoid unnecessary database queries.
+Eager loading is used to reduce unnecessary database queries.
 
-Comments are returned newest first, with 10 comments per page.
+## Search and Filtering
+
+The Explore Posts page supports:
+
+- Keyword search
+- Tag filtering
+- Combined filters
+- Pagination with retained query parameters
+
+Example:
+
+    GET /posts?search=Laravel&tag_id=1
+
+Only published posts appear in public search results.
 
 ## Automated Testing
 
-The project uses PHPUnit for automated tests.
+The application includes automated tests covering:
 
-The testing environment uses SQLite.
+- API authentication and authorization
+- Post creation and updates
+- Post ownership protection
+- Comment validation and ownership
+- Draft privacy
+- Search and tag filtering
+- Pagination and relationships
+- Homepage rendering
 
-Run all tests:
+Latest verified local results:
 
-```bash
-php artisan test
-```
+**40 tests passed — 113 assertions**
 
-Run only Comments API tests:
+Run the test suite:
 
-```bash
-php artisan test --filter=CommentApiTest
-```
+    php artisan test
 
-The test suite covers authentication, authorization, validation, post operations, relationships, pagination, and missing records.
+Tests use SQLite, while local development and production use MySQL.
 
-## HTTP Response Codes
+## Local Installation
 
-| Status | Meaning |
-|---|---|
-| 200 | Successful request |
-| 201 | Resource created |
-| 204 | Successful deletion |
-| 401 | Unauthenticated |
-| 403 | Forbidden |
-| 404 | Resource not found |
-| 422 | Validation error |
+### Requirements
+
+- PHP 8.4+
+- Composer
+- Node.js and npm
+- MySQL
+
+### Setup
+
+Clone the repository:
+
+    git clone https://github.com/PrashuChoudhary000/laravel-posts-rest-api.git
+
+Enter the project directory:
+
+    cd laravel-posts-rest-api
+
+Install PHP dependencies:
+
+    composer install
+
+Install frontend dependencies:
+
+    npm install
+
+Copy environment configuration:
+
+    cp .env.example .env
+
+Generate the application key:
+
+    php artisan key:generate
+
+Configure your local MySQL connection in `.env`.
+
+Run migrations:
+
+    php artisan migrate
+
+Build frontend assets:
+
+    npm run build
+
+Run the application:
+
+    php artisan serve
+
+## Production Deployment
+
+PostHub is deployed using Railway.
+
+The application uses:
+
+- PHP 8.4
+- MySQL database service
+- Production Vite assets
+- Railway environment variables
+- Laravel migrations
+- HTTPS
+
+Production environment variables are configured through Railway rather than committed to GitHub.
 
 ## Project Purpose
 
-This project was developed to practise Laravel REST API development and demonstrate understanding of API security, Eloquent ORM, database operations, and automated testing.
+PostHub was developed to demonstrate practical experience in:
+
+- Full-stack Laravel development
+- REST API design
+- Authentication and authorization
+- Relational database design
+- Secure data handling
+- Automated testing
+- Cloud deployment
+
+The project combines a working web application with a separate REST API.
+
+## Future Improvements
+
+- User profile pages
+- Rich-text article editor
+- Article cover images
+- Email verification flow
+- Improved content moderation
+- Expanded automated test coverage
+
+## License
+
+MIT
