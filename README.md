@@ -9,7 +9,7 @@ It also provides a REST API secured with Laravel Sanctum and uses Laravel Polici
 
 ## Live Demo
 
-**Website:** https://vibrant-hope-production-8f9791d8.up.railway.app/
+**Website:** https://posthub.up.railway.app/
 
 **Source Code:** https://github.com/PrashuChoudhary000/laravel-posts-rest-api
 
