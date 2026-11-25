@@ -11,7 +11,7 @@ It also provides a REST API secured with Laravel Sanctum and uses Laravel Polici
 
 **Website:** https://posthub.up.railway.app/
 
-**Source Code:** https://github.com/PrashuChoudhary000/laravel-posts-rest-api
+**Source Code:** https://github.com/PrashuChoudhary000/PostHub
 
 
 ## Application Screenshots
@@ -192,11 +192,11 @@ Tests use SQLite, while local development and production use MySQL.
 
 Clone the repository:
 
-    git clone https://github.com/PrashuChoudhary000/laravel-posts-rest-api.git
+    git clone https://github.com/PrashuChoudhary000/PostHub.git
 
 Enter the project directory:
 
-    cd laravel-posts-rest-api
+    cd PostHub
 
 Install PHP dependencies:
 
